@@ -1,0 +1,15 @@
+name: ${name}
+main: ${package}.${name}
+version: ${version}
+author: KaiNoMood
+
+commands:
+   krules:
+      description: Manage
+   acceptrules:
+      description: Accept rules
+
+permissions:
+    krules.manage:
+        description: Manage
+        default: op
