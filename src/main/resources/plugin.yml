@@ -8,6 +8,8 @@ commands:
       description: Manage
    acceptrules:
       description: Accept rules
+   rules:
+   	  description: read rules
 
 permissions:
     krules.manage:

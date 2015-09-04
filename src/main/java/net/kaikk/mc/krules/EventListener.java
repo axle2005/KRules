@@ -1,5 +1,7 @@
 package net.kaikk.mc.krules;
 
+import java.util.regex.Matcher;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -37,13 +39,10 @@ class EventListener implements Listener {
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
 		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.setCancelled(true);
-			if (event.getMessage().equalsIgnoreCase("/acceptrules")) {
-				instance.ds.addPlayerToAgreed(event.getPlayer().getUniqueId());
-				event.getPlayer().sendMessage(instance.config.rulesAccepted);
+			Matcher m = instance.allowedCommandsEx.matcher(event.getMessage());
+			if(m.matches())
 				return;
-			}
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+			event.setCancelled(true);
 		}
 	}
 	
