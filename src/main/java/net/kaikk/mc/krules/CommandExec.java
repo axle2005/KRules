@@ -41,7 +41,6 @@ public class CommandExec implements CommandExecutor {
 						sender.sendMessage("You have read page(s) " + StringUtils.join(instance.rules.pagesAlreadyRead(((Player) sender).getUniqueId()),","));
 					return false;
 				}
-				
 			}
 			else {
 				sender.sendMessage("You have already agreed to the rules");
@@ -68,11 +67,8 @@ public class CommandExec implements CommandExecutor {
 				sender.sendMessage("Usage: /"+label+" #\nThere are " + instance.rules.getPageCount() + " pages of rules");
 				return false;
 			}
-			
 		}
-	
 		return false;
-	
 	}
 	
 	private boolean commandKRules(CommandSender sender, String label, String[] args) {
@@ -97,6 +93,7 @@ public class CommandExec implements CommandExecutor {
 			instance.log("Plugin reloaded");
 			return true;
 		}
+		
 		return false;
 		
 	}

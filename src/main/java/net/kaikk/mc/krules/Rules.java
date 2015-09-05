@@ -2,6 +2,7 @@ package net.kaikk.mc.krules;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -14,31 +15,37 @@ public class Rules {
 	private int pages;
 	private Map<UUID, List<Integer>> pagesRead;
 	
-	Rules(List<String> rules) throws Exception {
-		processRules(rules);
+	Rules(List<String> rulesRaw) throws Exception {
+		pagesRead = new HashMap<UUID, List<Integer>>();
+		pagesRules = new ArrayList<List<String>>();
+		pages = 0;
+		processRules(rulesRaw);
 	}
 	Rules()	{
 		throw new UnsupportedOperationException();
 	}
-	private void processRules(List<String> rules) throws Exception {
-		Pattern pattern = Pattern.compile("([0-9]+:.*)");
-		for(String rule : rules) {
-			Matcher m = pattern.matcher(rule);
-			if(m.matches()) {
-				int curr = Integer.parseInt(rule.substring(0,rule.indexOf(":")));
-				if(curr > (pagesRules.size()+1) || curr < pagesRules.size()) {
-					throw new Exception("Improper rules format, put pages in order.");
+	private void processRules(List<String> rulesRaw) throws Exception {
+		Pattern pattern = Pattern.compile("(^[0-9]+:$)");
+
+		Matcher m = pattern.matcher(rulesRaw.get(0));
+		if(!m.matches()){
+			throw new Exception("impropper rules format");
+		}
+		
+		int lastPage = 0;
+		for(String line : rulesRaw) {
+			m = pattern.matcher(line);
+			if(m.matches()){
+				if(Integer.parseInt(line.substring(0, line.indexOf(":"))) != lastPage+1){
+					throw new Exception("impropper rules format");
 				}
-				if(pagesRules.size() == curr) {
-					pagesRules.get(curr).add(rule);
-				}
-				else if(pagesRules.size() < curr) {
-					pagesRules.add(new ArrayList<String>(Arrays.asList(rule)));
-					this.pages++;
-				}
+				lastPage++;
+				pagesRules.add(new ArrayList<String>());
+				pages++;
 			}
 			else
-				throw new Exception("Improper rules format.");
+				pagesRules.get(lastPage-1).add(line);			
+			
 		}
 	}
 	public int getPageCount() {
@@ -61,12 +68,15 @@ public class Rules {
 			pagesRead.put(player, Arrays.asList(page));
 		}
 		else if(pagesRead.get(player).contains(page)) {
-			return pagesRules.get(page);
+			return pagesRules.get(page-1);
 		}
 		else {
-			pagesRead.get(player).add(page);
+			List<Integer> newList = new ArrayList<Integer>();
+			newList.addAll(pagesRead.get(player));
+			newList.add(page);
+			pagesRead.replace(player, newList);
 		}
-		return pagesRules.get(page);
+		return pagesRules.get(page-1);
 	}
 	public List<Integer> pagesAlreadyRead(UUID player) {
 		if(!pagesRead.containsKey(player)) {
@@ -75,6 +85,8 @@ public class Rules {
 		return pagesRead.get(player);
 	}
 	public boolean hasReadAllRules(UUID player){
+		if(pagesRead.isEmpty())
+			return false;
 		if(pagesRead.get(player).size() == pages)
 			return true;
 		return false;

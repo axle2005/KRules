@@ -43,6 +43,7 @@ class EventListener implements Listener {
 			if(m.matches())
 				return;
 			event.setCancelled(true);
+			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
 		}
 	}
 	
