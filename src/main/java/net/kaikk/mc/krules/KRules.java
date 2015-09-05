@@ -20,9 +20,7 @@ public class KRules extends JavaPlugin {
 	Config config;
 	DataStore ds;
 	Map<UUID, Boolean> cache;
-	Map<UUID, List<Integer>> pagesRead;
-	List<String> rules;
-	int pages;
+	Rules rules;
 	Pattern allowedCommandsEx;
 	
 	@Override
@@ -38,8 +36,8 @@ public class KRules extends JavaPlugin {
 				writer.close();
 			}
 			allowedCommandsEx = Pattern.compile("(^!?/((rules [0-9]+)|(acceptrules))$)",Pattern.CASE_INSENSITIVE);
-			rules = Files.readAllLines(fRules.toPath(), StandardCharsets.UTF_8);
-			pages = countPages(rules);
+			
+			rules = new Rules(Files.readAllLines(fRules.toPath(), StandardCharsets.UTF_8));
 			
 			
 			ds=new DataStore(this, config.dbUrl, config.dbUsername, config.dbPassword);
@@ -53,23 +51,7 @@ public class KRules extends JavaPlugin {
 			this.getPluginLoader().disablePlugin(this);
 		}
 	}
-	private static int countPages(List<String> rules) throws Exception
-	{
-		Pattern pattern = Pattern.compile("([0-9]+:.*)");
-		int count = 0;
-		for(String rule : rules)
-		{
-			Matcher m = pattern.matcher(rule);
-			if(m.matches())
-				if(count == Integer.parseInt(rule.substring(0,rule.indexOf(":"))))
-					break;
-				else if(count+1 == Integer.parseInt(rule.substring(0,rule.indexOf(":"))))
-					count++;
-				else
-					throw new Exception("Improper rules format.");
-		}
-		return count;
-	}
+	
 	public boolean hasIntegersUpTo(List<Integer> list, int num)
 	{
 		for(int x = 1; x <= num; x++)

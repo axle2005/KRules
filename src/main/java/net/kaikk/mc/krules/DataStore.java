@@ -24,7 +24,7 @@ public class DataStore {
 		this.dbUrl = url;
 		this.username = username;
 		this.password = password;
-		
+
 		try {
 			//load the java driver for mySQL
 			Class.forName("com.mysql.jdbc.Driver");

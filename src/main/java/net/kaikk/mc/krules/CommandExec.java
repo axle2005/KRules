@@ -31,13 +31,15 @@ public class CommandExec implements CommandExecutor {
 	private boolean commandAcceptRules(CommandSender sender, String label, String[] args) {
 		if(sender instanceof Player) {
 			if(!instance.ds.hasPlayerAgreedWithRules(((Player) sender).getUniqueId())) {
-				if(instance.hasIntegersUpTo(instance.pagesRead.get(((Player) sender).getUniqueId()),instance.pages) ) {
+				if(instance.rules.hasReadAllRules(((Player) sender).getUniqueId())) {
 					instance.ds.addPlayerToAgreed(((Player) sender).getUniqueId());
 					sender.sendMessage(instance.config.rulesAccepted);
 					return true;
 				}
 				else{
-					sender.sendMessage("You must read all rules before accepting. Use /rules #");
+						sender.sendMessage("You must read all rules before accepting. Use /rules #");
+						sender.sendMessage("There are " + instance.rules.getPageCount() + " pages of rules");
+						sender.sendMessage("You have read page(s) " + StringUtils.join(instance.rules.pagesAlreadyRead(((Player) sender).getUniqueId()),","));
 					return false;
 				}
 				
@@ -54,37 +56,20 @@ public class CommandExec implements CommandExecutor {
 	}
 
 	private boolean commandRules(CommandSender sender, String label, String[] args) {
-		
 		if (args.length==0 || args.length > 1 || !args[0].matches("^-?\\d+$")) {
-			sender.sendMessage("Usage: /"+label+" #\nThere are " + instance.pages + " pages of rules");
+			sender.sendMessage("Usage: /"+label+" #\nThere are " + instance.rules.getPageCount() + " pages of rules");
 			return false;
 		}
 
 		if(args[0].matches("\\d+")) {
-			int page = Integer.parseInt(args[0]);
-			if(page > instance.pages || page < 1) {
-				sender.sendMessage("Not a valid page");
+			try{
+				sender.sendMessage(StringUtils.join(instance.rules.readRules(Integer.parseInt(args[0]), ((Player) sender).getUniqueId()),"\n"));
+				return true;
+			}catch(IndexOutOfBoundsException e){
+				sender.sendMessage("Usage: /"+label+" #\nThere are " + instance.rules.getPageCount() + " pages of rules");
 				return false;
 			}
 			
-			for(String rule : instance.rules) {
-				if(Integer.parseInt(rule.substring(0,rule.indexOf(":"))) == Integer.parseInt(args[0]))
-					sender.sendMessage(rule);
-			}
-			
-			
-			if(sender instanceof Player) {
-				if(!instance.ds.hasPlayerAgreedWithRules(((Player) sender).getUniqueId())) {
-					if(instance.pagesRead.containsKey(((Player) sender).getUniqueId())) {
-						if(!instance.pagesRead.get(((Player) sender).getUniqueId()).contains(page))
-							instance.pagesRead.get(((Player) sender).getUniqueId()).add(page);
-					}
-					else
-						instance.pagesRead.put(((Player) sender).getUniqueId(), Arrays.asList(page));
-					
-				}
-			}
-			return true;
 		}
 	
 		return false;
@@ -105,7 +90,7 @@ public class CommandExec implements CommandExecutor {
 		
 		String c = args[0].toLowerCase();
 		if (c.equals("current")) {
-			sender.sendMessage(StringUtils.join(instance.rules,"\n"));
+			sender.sendMessage(StringUtils.join(instance.rules.getAllRules(),"\n"));
 			return true;
 		} else if (c.equals("reload")) {
 			instance.getPluginLoader().disablePlugin(instance);
