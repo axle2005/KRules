@@ -2,6 +2,7 @@ name: ${name}
 main: ${package}.${name}
 version: ${version}
 author: KaiNoMood
+description: rules
 
 commands:
    krules:
@@ -9,7 +10,7 @@ commands:
    acceptrules:
       description: Accept rules
    rules:
-   	  description: read rules
+      description: Read rules
 
 permissions:
     krules.manage:
