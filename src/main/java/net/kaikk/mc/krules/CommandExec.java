@@ -1,6 +1,5 @@
 package net.kaikk.mc.krules;
 
-import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.command.Command;
