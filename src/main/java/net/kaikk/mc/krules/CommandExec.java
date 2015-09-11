@@ -2,6 +2,7 @@ package net.kaikk.mc.krules;
 
 
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -61,7 +62,7 @@ public class CommandExec implements CommandExecutor {
 
 		if(args[0].matches("\\d+")) {
 			try{
-				sender.sendMessage(StringUtils.join(instance.rules.readRules(Integer.parseInt(args[0]), ((Player) sender).getUniqueId()),"\n"));
+				sender.sendMessage(ChatColor.translateAlternateColorCodes('&', StringUtils.join(instance.rules.readRules(Integer.parseInt(args[0]), ((Player) sender).getUniqueId()),"\n")));
 				return true;
 			}catch(IndexOutOfBoundsException e){
 				sender.sendMessage("Usage: /"+label+" #\nThere are " + instance.rules.getPageCount() + " pages of rules");
@@ -85,7 +86,7 @@ public class CommandExec implements CommandExecutor {
 		
 		String c = args[0].toLowerCase();
 		if (c.equals("current")) {
-			sender.sendMessage(StringUtils.join(instance.rules.getAllRules(),"\n"));
+			sender.sendMessage(ChatColor.translateAlternateColorCodes('&', StringUtils.join(instance.rules.getAllRules(),"\n")));
 			return true;
 		} else if (c.equals("reload")) {
 			instance.getPluginLoader().disablePlugin(instance);
