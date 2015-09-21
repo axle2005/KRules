@@ -85,13 +85,11 @@ public class Rules {
 		return pagesRead.get(player);
 	}
 	public boolean hasReadAllRules(UUID player){
-		if(pagesRead.isEmpty())
-			return false;
-		if(pagesRead.get(player).size() == pages)
+			List<Integer> readPagesByPlayer = pagesRead.get(player);
+			if (readPagesByPlayer == null || readPagesByPlayer.size() < pages) {
+	    			return false;
+			}
 			return true;
-		return false;
-		
 	}
-	
 }
 
