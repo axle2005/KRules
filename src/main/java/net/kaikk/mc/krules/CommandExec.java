@@ -48,9 +48,9 @@ public class CommandExec implements CommandExecutor {
 				return true;
 			}
 		}
-		else
+		else {
 			sender.sendMessage("Must be a player");
-		
+		}
 		return false;
 	}
 
