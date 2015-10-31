@@ -24,10 +24,18 @@ public class CommandExec implements CommandExecutor {
 			case "acceptrules":
 				return commandAcceptRules(sender, label, args);
 			default:
-				return false;
+				return commandIncorrect(sender, label, args);
 		}
 	}
 
+	private boolean commandIncorrect(CommandSender sender, String label, String[] args){
+		sender.sendMessage("Example usage: /rules 1");
+		sender.sendMessage("/rules 2");
+		sender.sendMessage("...");
+		sender.sendMessage("/acceptrules");
+		return false;
+	}
+	
 	private boolean commandAcceptRules(CommandSender sender, String label, String[] args) {
 		if(sender instanceof Player) {
 			if(!instance.ds.hasPlayerAgreedWithRules(((Player) sender).getUniqueId())) {

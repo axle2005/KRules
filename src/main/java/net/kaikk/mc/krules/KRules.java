@@ -20,6 +20,7 @@ public class KRules extends JavaPlugin {
 	Map<UUID, Boolean> cache;
 	Rules rules;
 	Pattern allowedCommandsEx;
+	Pattern closeButNoCigar;
 	
 	@Override
 	public void onEnable() {
@@ -39,7 +40,8 @@ public class KRules extends JavaPlugin {
 				writer.println("I am rule 5 on page 2");
 				writer.close();
 			}
-			allowedCommandsEx = Pattern.compile("(^((/rules [0-9]+)|(/acceptrules)|(/rules)|(/krules.*))$)",Pattern.CASE_INSENSITIVE);
+			allowedCommandsEx = Pattern.compile("(^((/rule[s]?[ ]*[0-9]*)|(/acceptrules)|(/krules.*))$)",Pattern.CASE_INSENSITIVE);
+			closeButNoCigar = Pattern.compile("^(?!/rules [0-9]+)([/]rule[s]?[ ]*[0-9]*)",Pattern.CASE_INSENSITIVE);
 			rules = new Rules(Files.readAllLines(fRules.toPath(), StandardCharsets.UTF_8));
 
 			

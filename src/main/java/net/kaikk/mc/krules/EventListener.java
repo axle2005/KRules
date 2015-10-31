@@ -39,7 +39,15 @@ class EventListener implements Listener {
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
 		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			Matcher m = instance.allowedCommandsEx.matcher(event.getMessage());
+			Matcher m = instance.closeButNoCigar.matcher(event.getMessage());
+			if(m.matches()){
+				event.getPlayer().sendMessage("Example usage: /rules 1");
+				event.getPlayer().sendMessage("/rules 2");
+				event.getPlayer().sendMessage("...");
+				event.getPlayer().sendMessage("/acceptrules");
+				event.setCancelled(true);
+			}
+			m = instance.allowedCommandsEx.matcher(event.getMessage());
 			if(m.matches()){
 				return;
 			}
