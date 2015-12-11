@@ -1,95 +1,119 @@
 package net.kaikk.mc.krules;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import org.spongepowered.api.service.pagination.PaginationBuilder;
+import org.spongepowered.api.service.pagination.PaginationService;
+import org.spongepowered.api.text.Text;
+import org.spongepowered.api.text.TextBuilder;
+import org.spongepowered.api.text.Texts;
+import org.spongepowered.api.text.action.TextActions;
+import org.spongepowered.api.util.TextMessageException;
 
 public class Rules {
-
-	private List<List<String>> pagesRules;
-	private int pages;
-	private Map<UUID, List<Integer>> pagesRead;
+	private KRules instance;
+	private List<String> rawRules;
+	public PaginationBuilder pages;
+	private int hoverWidth = 80;
 	
-	Rules(List<String> rulesRaw) throws Exception {
-		pagesRead = new HashMap<UUID, List<Integer>>();
-		pagesRules = new ArrayList<List<String>>();
-		pages = 0;
-		processRules(rulesRaw);
+	Rules(KRules instance) throws IOException, TextMessageException{
+		this.instance= instance;
+		setup();
 	}
+	
 	Rules()	{
 		throw new UnsupportedOperationException();
 	}
-	private void processRules(List<String> rulesRaw) throws Exception {
-		Pattern pattern = Pattern.compile("(^[0-9]+:$)");
-
-		Matcher m = pattern.matcher(rulesRaw.get(0));
-		if(!m.matches()){
-			throw new Exception("impropper rules format");
-		}
-		
-		int lastPage = 0;
-		for(String line : rulesRaw) {
-			m = pattern.matcher(line);
-			if(m.matches()){
-				if(Integer.parseInt(line.substring(0, line.indexOf(":"))) != lastPage+1){
-					throw new Exception("impropper rules format");
-				}
-				lastPage++;
-				pagesRules.add(new ArrayList<String>());
-				pages++;
+	
+	private void setup() throws IOException, TextMessageException{
+		rawRules = new ArrayList<String>();
+		new File("mods"+File.separator+"KRules").mkdirs();
+		File fRules = new File("mods"+File.separator+"KRules"+File.separator+"rules.txt");
+		FileInputStream input;
+	    try {
+			if (!fRules.exists()) {
+				PrintWriter writer;
+				writer = new PrintWriter(fRules.toPath().toString());
+				writer.println("{text:\"I am the Title (always the first line, must be present)\",color:\"red\"}");
+				writer.println("I am rule 1, no json here, it's totally optional");
+				writer.println("{text:\"I am rule 2, I use json for formatting\",color:\"green\"}");
+				writer.println("	I am rule 2 hover over details that are automagically wrapped at 80 chars(first char is tab, I am optional, do not use json on me)");
+				writer.println("I am rule 3, jsons should be kept on a single line");
+				writer.println("{text:\"I am click to accept text (always last line, must be present)\",color:\"blue\",underlined:\"true\"}");
+				writer.close();
 			}
-			else
-				pagesRules.get(lastPage-1).add(line);			
+	        input = new FileInputStream(fRules);
+	        CharsetDecoder decoder = Charset.forName("US-ASCII").newDecoder();
+	        decoder.onMalformedInput(CodingErrorAction.IGNORE);
+	        InputStreamReader reader = new InputStreamReader(input, decoder);
+	        BufferedReader bufferedReader = new BufferedReader( reader );
+	        String line = bufferedReader.readLine();
+	        while( line != null ) {
+	            rawRules.add(line);
+	            line = bufferedReader.readLine();
+	        }
+	        bufferedReader.close();
+	    } catch( IOException e ) {
+	        throw e;
+	    }
+	    
+		processRules();
 			
-		}
 	}
-	public int getPageCount() {
-		return pages;		
-	}
-	public List<String> getAllRules() {
-		List<String> temp = new ArrayList<String>();
-		for(List<String> page : pagesRules) {		
-			for(String rule : page)	{
-				temp.add(rule);
-			}
-		}
-		return temp;
-	}
-	public List<String> readRules(int page, UUID player) throws IndexOutOfBoundsException {
-		if(page < 1 || page > pagesRules.size())
-			throw new IndexOutOfBoundsException("Not a page");
+	private void processRules() throws IOException, TextMessageException {
+		List<Text> contents = new ArrayList<>();
+		TextBuilder lastProcessedRule = null;
 		
-		if(!pagesRead.containsKey(player)) {
-			pagesRead.put(player, Arrays.asList(page));
-		}
-		else if(pagesRead.get(player).contains(page)) {
-			return pagesRules.get(page-1);
-		}
-		else {
-			List<Integer> newList = new ArrayList<Integer>();
-			newList.addAll(pagesRead.get(player));
-			newList.add(page);
-			pagesRead.replace(player, newList);
-		}
-		return pagesRules.get(page-1);
-	}
-	public List<Integer> pagesAlreadyRead(UUID player) {
-		if(!pagesRead.containsKey(player)) {
-			return null;			
-		}
-		return pagesRead.get(player);
-	}
-	public boolean hasReadAllRules(UUID player){
-			List<Integer> readPagesByPlayer = pagesRead.get(player);
-			if (readPagesByPlayer == null || readPagesByPlayer.size() < pages) {
-	    			return false;
+		for (int x = 1; x <= rawRules.size(); x++) {			
+			String line = rawRules.get(x);
+			if (x == rawRules.size() - 1) {
+				contents.add(Texts.json().fromUnchecked(line).builder().onClick(TextActions.executeCallback(src -> instance.acceptRules(src))).build());
+				break;
+			} else if (line.indexOf('	') > -1) {
+				if (lastProcessedRule == null) {
+					throw new UnsupportedOperationException("Impropperly formatted rules.txt delete it for an example.");
+				}
+				if (rawRules.get(x + 1).indexOf('	') > -1) {
+					throw new UnsupportedOperationException("Impropperly formatted rules.txt delete it for an example. (One hover per rule)");
+				}
+				if (line.length() > hoverWidth) {
+					outerLoop:
+					for (int y = hoverWidth; y < line.length(); y += hoverWidth) {
+						while (line.charAt(y)!= ' ') {
+							if ( y - 1 < 0) {
+								break outerLoop;
+							}
+							y--;
+						}
+						line = new StringBuilder(line).replace(y, y+1, "\n").toString();
+						if (y + hoverWidth >= line.length()) {
+							break;
+						}
+					}
+				}
+				lastProcessedRule = lastProcessedRule.onHover(TextActions.showText(Texts.of(line.substring(1, line.length()))));
+			} else {
+				lastProcessedRule = Texts.json().fromUnchecked(line).builder();
+				if (rawRules.get(x + 1).indexOf('	') > -1) {
+					continue;
+				}
 			}
-			return true;
+			contents.add(lastProcessedRule.build());
+		}
+		PaginationService paginationService = instance.game.getServiceManager().provide(PaginationService.class).get();
+		pages = paginationService.builder().contents(contents).title(Texts.json().fromUnchecked(rawRules.get(0)));
+				
 	}
 }
 

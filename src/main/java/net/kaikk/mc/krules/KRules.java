@@ -1,68 +1,86 @@
 package net.kaikk.mc.krules;
 
-import java.io.File;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.regex.Pattern;
+import java.util.logging.Logger;
 
-import org.bukkit.plugin.java.JavaPlugin;
+import org.spongepowered.api.Game;
+import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.command.spec.CommandSpec;
+import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.event.Listener;
+import org.spongepowered.api.event.game.state.GameInitializationEvent;
+import org.spongepowered.api.event.game.state.GameStartedServerEvent;
+import org.spongepowered.api.plugin.Plugin;
+import org.spongepowered.api.text.Texts;
 
-public class KRules extends JavaPlugin {
+
+
+@Plugin(id = "KRules", name = "KRules", version = "1.0")
+public class KRules {
 	static KRules instance;
+	Game game;
 	Config config;
 	DataStore ds;
 	Map<UUID, Boolean> cache;
 	Rules rules;
-	Pattern allowedCommandsEx;
-	Pattern closeButNoCigar;
 	
-	@Override
-	public void onEnable() {
+	@Listener
+	public void onInitialization(GameInitializationEvent event) {
 		instance=this;
+		config=new Config(instance);
+		game = event.getGame();
+		cache=new HashMap<UUID, Boolean>();
 		
-		config=new Config();
 		try {
-			File fRules = new File("plugins"+File.separator+"KRules"+File.separator+"rules.txt");
-			if (!fRules.exists()) {
-				PrintWriter writer = new PrintWriter(fRules.toPath().toString(), "UTF-8");
-				writer.println("1:");
-				writer.println("I am rule 1 on page 1");
-				writer.println("I am rule 2 on page 1");
-				writer.println("2:");
-				writer.println("I am rule 3 on page 2");
-				writer.println("I am rule 4 on page 2");
-				writer.println("I am rule 5 on page 2");
-				writer.close();
-			}
-			allowedCommandsEx = Pattern.compile("(^((/rule[s]?[ ]*[0-9]*)|(/acceptrules)|(/krules.*))$)",Pattern.CASE_INSENSITIVE);
-			closeButNoCigar = Pattern.compile("^(?!/rules [0-9]+)([/]rule[s]?[ ]*[0-9]*)",Pattern.CASE_INSENSITIVE);
-			rules = new Rules(Files.readAllLines(fRules.toPath(), StandardCharsets.UTF_8));
-
-			
-			ds=new DataStore(this, config.dbUrl, config.dbUsername, config.dbPassword);
-			cache=new HashMap<UUID, Boolean>();
-			
-			this.getServer().getPluginManager().registerEvents(new EventListener(this), this);
-			this.getCommand("krules").setExecutor(new CommandExec(this));
-			this.getCommand("rules").setExecutor(new CommandExec(this));
-			this.getCommand("acceptrules").setExecutor(new CommandExec(this));
+			ds=new DataStore(this, config.getDbUrl(), config.getDbUsername(), config.getDbPassword());
 		} catch (Exception e) {
 			e.printStackTrace();
-			this.getPluginLoader().disablePlugin(this);
+		}
+		CommandSpec commandRules = CommandSpec.builder()
+				.executor(new CommandRules(this))
+				.build();
+		game.getCommandManager().register(this, commandRules, "rules");
+		game.getEventManager().registerListeners(this, new EventListener(instance));
+	}
+	
+	@Listener
+	public void onServerStart(GameStartedServerEvent event) {
+		try {
+			rules = new Rules(instance);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
-	public boolean hasIntegersUpTo(List<Integer> list, int num)
-	{
-		for(int x = 1; x <= num; x++)
-		{
-			if(list.contains(x))
+	public void acceptRules(CommandSource src) {
+		if (!(src instanceof Player)) {
+			src.sendMessage(Texts.of("KRules commands must be run by a player"));
+			return;
+		}
+		Player p = (Player) src;
+		if (!ds.hasPlayerAgreedWithRules(p.getUniqueId())) {
+			cache.put(p.getUniqueId(), true);
+			ds.addPlayerToAgreed(p.getUniqueId());
+		}
+		return;
+	}
+	
+	public boolean isFakePlayer(UUID uuid) {
+		for (Player player : game.getServer().getOnlinePlayers()) {
+			if (player.getUniqueId().equals(uuid)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public boolean hasIntegersUpTo(List<Integer> list, int num) {
+		for(int x = 1; x <= num; x++) {
+			if (list.contains(x))
 				continue;
 			return false;
 		}
@@ -74,7 +92,7 @@ public class KRules extends JavaPlugin {
 	}
 	
 	void log(Level level, String t) {
-		this.getLogger().log(level, t);
+		Logger.getGlobal().log(level, t, this);
 	}
 
 }

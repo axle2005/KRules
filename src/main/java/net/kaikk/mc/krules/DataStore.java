@@ -9,8 +9,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Level;
 
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.apache.commons.lang3.StringUtils;
 
 public class DataStore {
 	private KRules instance;
@@ -29,7 +28,7 @@ public class DataStore {
 			//load the java driver for mySQL
 			Class.forName("com.mysql.jdbc.Driver");
 		} catch(Exception e) {
-			this.instance.log(Level.SEVERE, "Unable to load Java's mySQL database driver.  Check to make sure you've installed it properly.");
+			this.instance.log(Level.SEVERE, "KRULES: Unable to load Java's mySQL database driver.  Check to make sure you've installed it properly.");
 			throw e;
 		}
 		
@@ -37,7 +36,7 @@ public class DataStore {
 		try {
 			this.dbCheck();
 		} catch(Exception e) {
-			this.instance.log(Level.SEVERE, "Unable to connect to database.  Check your config file settings.");
+			this.instance.log(Level.SEVERE, "KRULES: Unable to connect to database.  Check your config file settings.");
 			throw e;
 		}
 		
@@ -47,15 +46,14 @@ public class DataStore {
 			// Creates the table on the database
 			statement.executeUpdate("CREATE TABLE IF NOT EXISTS krules (player binary(16) NOT NULL, PRIMARY KEY (`player`));");
 		} catch(Exception e) {
-			this.instance.log(Level.SEVERE, "Unable to create the necessary database tables. Details:");
+			this.instance.log(Level.SEVERE, "KRULES: Unable to create the necessary database tables. Details:");
 			throw e;
 		}
-		
 		
 	}
 	
 	synchronized void dbCheck() throws SQLException {
-		if(this.db == null || this.db.isClosed()) {
+		if (this.db == null || this.db.isClosed()) {
 			Properties connectionProps = new Properties();
 			connectionProps.put("user", this.username);
 			connectionProps.put("password", this.password);
@@ -66,7 +64,7 @@ public class DataStore {
 	
 	synchronized boolean hasPlayerAgreedWithRules(UUID uuid) {
 		// fake players check
-		if (isFakePlayer(uuid)) {
+		if (instance.isFakePlayer(uuid)) {
 			return true;
 		}
 		
@@ -119,15 +117,6 @@ public class DataStore {
 	
 	public static String UUIDtoHexString(UUID uuid) {
 		if (uuid==null) return "0x0";
-		return "0x"+org.apache.commons.lang.StringUtils.leftPad(Long.toHexString(uuid.getMostSignificantBits()), 16, "0")+org.apache.commons.lang.StringUtils.leftPad(Long.toHexString(uuid.getLeastSignificantBits()), 16, "0");
-	}
-	
-	private boolean isFakePlayer(UUID uuid) {
-		for (Player player : Bukkit.getOnlinePlayers()) {
-			if (player.getUniqueId().equals(uuid)) {
-				return false;
-			}
-		}
-		return true;
+		return "0x"+StringUtils.leftPad(Long.toHexString(uuid.getMostSignificantBits()), 16, "0")+StringUtils.leftPad(Long.toHexString(uuid.getLeastSignificantBits()), 16, "0");
 	}
 }
