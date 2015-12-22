@@ -4,14 +4,20 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import net.kaikk.mc.uuidprovider.UUIDProvider;
 
 public class KRules extends JavaPlugin {
 	static KRules instance;
@@ -66,7 +72,91 @@ public class KRules extends JavaPlugin {
 		}
 		return true;
 	}
-	
+	public UUID addPlayer(String name) {
+		Player p = getOnlinePlayer(name);
+		if(p == null) {
+			UUID uuid = UUIDProvider.get(name);
+			if(uuid == null) {
+				return null;
+			} else {
+				if(addPlayer(uuid)) {
+					return uuid;
+				}
+				return null;
+			}
+		}
+		if(addPlayer(p.getUniqueId())) {
+			return p.getUniqueId();
+		}
+		return null;
+	}
+	public boolean checkPlayer(String name) {
+		Player p = getOnlinePlayer(name);
+		if(p == null) {
+			UUID uuid = UUIDProvider.get(name);
+			if(uuid == null) {
+				return false;
+			} else {
+				return checkPlayer(uuid);
+			}
+		}
+		return checkPlayer(p.getUniqueId());
+	}
+	public UUID removePlayer(String name) {
+		Player p = getOnlinePlayer(name);
+		if(p == null) {
+			UUID uuid = UUIDProvider.get(name);
+			if(uuid == null) {
+				return null;
+			} else {
+				if(removePlayer(uuid)) {
+					return uuid;
+				} else {
+					return null;
+				}
+			}
+		}
+		if(removePlayer(p.getUniqueId())) {
+			return p.getUniqueId();
+		}
+		return null;
+	}
+	public boolean addPlayer(UUID uuid) {
+		if(checkPlayer(uuid)) {
+			return true;
+		}
+		ds.addPlayerToAgreed(uuid);
+		return true;
+	}
+	public boolean checkPlayer(UUID uuid) {
+		return ds.hasPlayerAgreedWithRules(uuid, false);
+	}
+	public boolean removePlayer(UUID uuid) {
+		if(checkPlayer(uuid)) {
+			ds.removePlayerFromAgreed(uuid);
+			return true;
+		}
+		return true;
+	}
+	@SuppressWarnings("unchecked")
+	Player getOnlinePlayer(final String name) {
+		Collection<Player> players = (Collection<Player>) this.getServer().getOnlinePlayers();
+		
+		Predicate<Player> filter = new Predicate<Player>() {
+			@Override
+			public boolean test(Player t) {
+				if (t.getName() != name) {
+					return true;
+				}
+				return false;
+			}
+		};
+		List<Object> remaining = players.stream().filter(filter).collect(Collectors.toList());
+		if(remaining.size() == 1) {
+			return (Player) remaining.toArray()[0];
+		}
+		return null;		
+	}
 	void log(String t) {
 		log(Level.INFO, t);
 	}
