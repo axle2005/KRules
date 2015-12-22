@@ -24,7 +24,7 @@ public class DataStore {
 		this.dbUrl = url;
 		this.username = username;
 		this.password = password;
-		
+
 		try {
 			//load the java driver for mySQL
 			Class.forName("com.mysql.jdbc.Driver");
@@ -64,9 +64,9 @@ public class DataStore {
 		}
 	}
 	
-	synchronized boolean hasPlayerAgreedWithRules(UUID uuid) {
+	synchronized boolean hasPlayerAgreedWithRules(UUID uuid, boolean checkFakePlayer) {
 		// fake players check
-		if (isFakePlayer(uuid)) {
+		if (isFakePlayer(uuid) && checkFakePlayer) {
 			return true;
 		}
 		
@@ -89,6 +89,16 @@ public class DataStore {
 			e.printStackTrace();
 		}
 		return false;
+	}
+	
+	synchronized void removePlayerFromAgreed(UUID uuid) {
+		try {
+			this.dbCheck();
+			this.db.createStatement().executeUpdate("DELETE FROM krules WHERE player = " + UUIDtoHexString(uuid));
+			instance.cache.remove(uuid);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	synchronized void addPlayerToAgreed(UUID uuid) {

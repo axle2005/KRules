@@ -16,6 +16,7 @@ class Config {
 	String dbPassword;
 	String acceptRules;
 	String rulesAccepted;
+	String readRules;
 	
 	Config() {
 		this.configFile = new File(configFilePath);
@@ -28,7 +29,8 @@ class Config {
 		this.dbUsername=config.getString("dbUsername", "krules");
 		this.dbPassword=config.getString("dbPassword", "");
 		
-		this.acceptRules=config.getString("acceptRules", "§2You must accept the rules. Use /acceptrules command.");
+		this.acceptRules=config.getString("readRules", "§2You must read all the rules. Use /rules # command.");
+		this.acceptRules=config.getString("acceptRules", "§2You must accept the rules. Use /acceptrules command and /rules to read rules.");
 		this.rulesAccepted=config.getString("rulesAccepted", "§3Rules accepted.");
 		
 		this.save();

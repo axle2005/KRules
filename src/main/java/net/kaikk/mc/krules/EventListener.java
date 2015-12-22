@@ -1,5 +1,7 @@
 package net.kaikk.mc.krules;
 
+import java.util.regex.Matcher;
+
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryOpenEvent;
@@ -24,33 +26,32 @@ class EventListener implements Listener {
 	
 	@EventHandler(ignoreCancelled=true)
 	void onAsyncPlayerPreLogin(AsyncPlayerPreLoginEvent event) {
-		instance.ds.hasPlayerAgreedWithRules(event.getUniqueId()); // async cache the value
+		instance.ds.hasPlayerAgreedWithRules(event.getUniqueId(), true); // async cache the value
 	}
 	
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerLogin(PlayerLoginEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 		}
 	}
 	
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerCommandPreprocess(PlayerCommandPreprocessEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.setCancelled(true);
-			if (event.getMessage().equalsIgnoreCase("/acceptrules")) {
-				instance.ds.addPlayerToAgreed(event.getPlayer().getUniqueId());
-				event.getPlayer().sendMessage(instance.config.rulesAccepted);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			Matcher m = instance.allowedCommandsEx.matcher(event.getMessage());
+			if(m.matches()){
 				return;
 			}
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+			event.setCancelled(true);
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 		}
 	}
 	
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerAchievementAwarded(PlayerAchievementAwardedEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 			event.setCancelled(true);
 		}
 	}
@@ -58,64 +59,64 @@ class EventListener implements Listener {
 
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerBedEnter(PlayerBedEnterEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled=true)
 	void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerDropItem(PlayerDropItemEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerInteract(PlayerInteractEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled=true)
 	void onInventoryOpen(InventoryOpenEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerPickupItem(PlayerPickupItemEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler(ignoreCancelled=true)
 	void onPlayerTeleport(PlayerTeleportEvent event) {
-		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId())) {
-			event.getPlayer().sendMessage(instance.rules+"\n"+instance.config.acceptRules);
+		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
+			event.getPlayer().sendMessage(instance.config.acceptRules);
 			event.setCancelled(true);
 		}
 	}
