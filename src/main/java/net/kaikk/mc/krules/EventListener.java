@@ -3,6 +3,7 @@ package net.kaikk.mc.krules;
 import java.util.regex.Matcher;
 
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -65,10 +66,13 @@ class EventListener implements Listener {
 		}
 	}
 
-	@EventHandler(ignoreCancelled=true)
+	@EventHandler(priority=EventPriority.LOWEST)
 	void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
 		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
 			event.getPlayer().sendMessage(instance.config.acceptRules);
+			event.setMessage(""); 
+			
+			
 			event.setCancelled(true);
 		}
 	}
