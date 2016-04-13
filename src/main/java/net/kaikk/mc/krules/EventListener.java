@@ -66,7 +66,7 @@ class EventListener implements Listener {
 		}
 	}
 
-	@EventHandler(priority=EventPriority.LOWEST)
+	@EventHandler(priority=EventPriority.LOWEST, ignoreCancelled=true)
 	void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
 		if (!instance.ds.hasPlayerAgreedWithRules(event.getPlayer().getUniqueId(), true)) {
 			event.getPlayer().sendMessage(instance.config.acceptRules);
